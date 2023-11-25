@@ -2,20 +2,38 @@ import React, { useEffect } from "react";
 import "./CartItem.css";
 import { useRef } from "react";
 import { useState } from "react";
-
-const CartItem = ({ product, updateSubtotal }) => {
+import { useContext } from "react";
+import { cartContext } from "../App";
+const CartItem = ({ product, updateSubtotal, setCartProducts }) => {
+  let cartProducts = useContext(cartContext);
   const [total, setTotal] = useState(0);
   const qtyRef = useRef();
   const [qty, setQty] = useState(1);
-  const handleQty = () => {
+  const [id, setid] = useState(0);
+
+  const handleQty = (id) => {
     setQty(qtyRef.current.value);
+    setid(id);
   };
+
   useEffect(() => {
-    setTotal(qty * product.price);
+    updateTotal();
   }, [qty]);
-  useEffect(() => {
-    updateSubtotal(total);
-  }, [total]);
+
+  useEffect(() => updateSubtotal(), [cartProducts]);
+
+  const updateTotal = () => {
+    const updatedCartProducts = cartProducts.map((cartProduct) => {
+      if (cartProduct.id === id) {
+        return { ...cartProduct, qty: qty };
+      } else {
+        return cartProduct;
+      }
+    });
+    setCartProducts(updatedCartProducts);
+    setTotal(qty * product.price);
+  };
+
   return (
     <div className="cartItem container">
       <div className="cartItem-left">
@@ -29,7 +47,11 @@ const CartItem = ({ product, updateSubtotal }) => {
       </div>
       <div className="cartItem-right">
         <div className="mx-5">
-          <select ref={qtyRef} value={qty} onChange={() => handleQty()}>
+          <select
+            ref={qtyRef}
+            value={qty}
+            onChange={() => handleQty(product.id)}
+          >
             <option value="0">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
@@ -44,6 +66,7 @@ const CartItem = ({ product, updateSubtotal }) => {
         </div>
         <div>${total}</div>
       </div>
+      <hr />
     </div>
   );
 };
